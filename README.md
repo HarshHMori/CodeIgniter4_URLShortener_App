@@ -1,73 +1,330 @@
-<<<<<<< HEAD
-# CodeIgniter 4 Application Starter
+# URL Shortener
 
-## What is CodeIgniter?
+A responsive URL-shortening application built with **CodeIgniter 4**, **PHP**, and **MySQL**. Paste a long URL, generate a six-character short code, copy the shortened link, and use it to redirect to the original address.
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+## Project preview
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+### Before shortening a URL
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+![URL Shortener form before generating a link](Without-Shorten.png)
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+### After shortening a URL
 
-## Installation & updates
+![URL Shortener showing the generated short link](Shorten-URL.png)
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+## Features
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+- Generates a random six-character code for each submitted URL
+- Stores the original URL and short code in MySQL
+- Redirects short links to their original destinations
+- Marks a link as opened after it is visited
+- Copies generated links to the clipboard
+- Includes client-side required-field validation
+- Provides a responsive glassmorphism-style interface
 
-## Setup
+## Technology stack
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+| Technology | Purpose |
+| --- | --- |
+| PHP 8.2+ | Server-side language |
+| CodeIgniter 4.7 | MVC framework, routing, database access, and migrations |
+| MySQL / MySQLi | URL storage |
+| HTML and CSS | Page structure and responsive design |
+| jQuery + jQuery Validate | Client-side interaction and validation |
+| Toastr | Copy-success notification |
+| Font Awesome | Copy icon |
 
-## Important Change with index.php
+## Requirements
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+- PHP **8.2 or newer**
+- [Composer](https://getcomposer.org/)
+- MySQL or MariaDB
+- PHP extensions: `intl`, `mbstring`, and `mysqli`
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+Check the installed tools with:
 
-**Please** read the user guide for a better explanation of how CI4 works!
+```bash
+php --version
+composer --version
+mysql --version
+```
 
-## Repository Management
+## Installation and run process
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+### 1. Clone the repository
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+```bash
+git clone <repository-url>
+cd url-shortener
+```
 
-## Server Requirements
+If the project is already downloaded, open a terminal in its root directory.
 
-PHP version 8.2 or higher is required, with the following extensions installed:
+### 2. Install dependencies
 
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+```bash
+composer install
+```
 
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - The end of life date for PHP 8.1 was December 31, 2025.
-> - If you are still using below PHP 8.2, you should upgrade immediately.
-> - The end of life date for PHP 8.2 will be December 31, 2026.
+### 3. Create the environment file
 
-Additionally, make sure that the following extensions are enabled in your PHP:
+If the CodeIgniter `env` template is present, copy it to `.env`:
 
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
-=======
-# CodeIgniter4
->>>>>>> 531c983f777cb235fa15510a17952b121fbc5081
+Windows PowerShell:
+
+```powershell
+Copy-Item env .env
+```
+
+Linux or macOS:
+
+```bash
+cp env .env
+```
+
+If there is no template, create a plain-text file named `.env` in the project root. Set the development environment and local URL:
+
+```ini
+CI_ENVIRONMENT = development
+app.baseURL = 'http://localhost:8080/'
+```
+
+### 4. Create the database
+
+Run this statement using MySQL, phpMyAdmin, MySQL Workbench, or another database client:
+
+```sql
+CREATE DATABASE ci4_url_shortener
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_general_ci;
+```
+
+### 5. Configure the database
+
+Update `.env` to match your MySQL installation:
+
+```ini
+database.default.hostname = localhost
+database.default.database = ci4_url_shortener
+database.default.username = root
+database.default.password = ''
+database.default.DBDriver = MySQLi
+database.default.DBPrefix =
+database.default.port = 3306
+```
+
+Use your actual username and password. Do not commit an `.env` file containing real credentials.
+
+### 6. Create the `urls` table
+
+Run the included migration:
+
+```bash
+php spark migrate
+```
+
+The migration creates:
+
+| Field | Description |
+| --- | --- |
+| `id` | Auto-incrementing primary key |
+| `long_url` | Original destination URL |
+| `shortcode` | Generated short code |
+| `is_opened` | Changes from `0` to `1` when visited |
+| `created_at` | Record creation time |
+
+Check migration status with:
+
+```bash
+php spark migrate:status
+```
+
+### 7. Start the application
+
+```bash
+php spark serve
+```
+
+Open:
+
+```text
+http://localhost:8080/url-shortener
+```
+
+Keep the terminal running while using the app. Press `Ctrl+C` to stop the server.
+
+## How to use it
+
+1. Open `http://localhost:8080/url-shortener`.
+2. Paste a complete destination URL, including `http://` or `https://`.
+3. Select **Shorten URL**.
+4. Copy the generated link with the copy button.
+5. Open or share it. Visiting the short link redirects to the saved destination.
+
+Example:
+
+```text
+Long URL:  https://example.com/a/very/long/path
+Short URL: http://localhost:8080/aB3xY9
+```
+
+## How the project was created
+
+The application follows CodeIgniter's MVC structure.
+
+### 1. CodeIgniter setup
+
+The initial application can be created with:
+
+```bash
+composer create-project codeigniter4/appstarter url-shortener
+cd url-shortener
+```
+
+### 2. Database migration
+
+`app/Database/Migrations/2026-09-03-103655_CreateUrlsTable.php` defines the `urls` table. A migration skeleton can be generated with:
+
+```bash
+php spark make:migration CreateUrlsTable
+```
+
+After its fields are defined, `php spark migrate` applies it.
+
+### 3. Controller logic
+
+`app/Controllers/URLController.php` contains the core logic:
+
+- `urlShortener()` displays the form and handles submissions.
+- `getURLShortCode()` shuffles letters and numbers and returns six characters.
+- `handelShortURLs()` finds a code, marks it as opened, and redirects.
+
+A controller skeleton can be generated with:
+
+```bash
+php spark make:controller URLController
+```
+
+### 4. Routes
+
+`app/Config/Routes.php` connects requests to the controller:
+
+```php
+$routes->match(['get', 'post'], 'url-shortener', 'URLController::urlShortener');
+$routes->get('(:segment)', 'URLController::handelShortURLs/$1');
+```
+
+The first route displays and submits the form. The dynamic route treats one URL segment as a possible short code.
+
+### 5. Interface
+
+- `app/Views/url-shortener.php` contains the form, result panel, copy action, and validation.
+- `public/style.css` contains the layout, responsive rules, colors, and visual effects.
+- CDN resources provide jQuery, jQuery Validate, Toastr, and Font Awesome.
+
+## Request flow
+
+```text
+Submit long URL
+      |
+      v
+Generate a six-character code
+      |
+      v
+Save original URL + code in MySQL
+      |
+      v
+Display the short URL
+      |
+      v
+Visitor opens /{shortcode}
+      |
+      v
+Database lookup -> mark as opened -> redirect
+```
+
+If a code is not found, the application returns a JSON error response.
+
+## Project structure
+
+```text
+url-shortener/
+|-- app/
+|   |-- Config/Routes.php
+|   |-- Controllers/URLController.php
+|   |-- Database/Migrations/2026-09-03-103655_CreateUrlsTable.php
+|   `-- Views/url-shortener.php
+|-- public/
+|   |-- index.php
+|   `-- style.css
+|-- writable/
+|-- .env
+|-- composer.json
+|-- Shorten-URL.png
+|-- Without-Shorten.png
+|-- spark
+`-- README.md
+```
+
+## Useful commands
+
+```bash
+# Start the development server
+php spark serve
+
+# Apply pending migrations
+php spark migrate
+
+# Show migration status
+php spark migrate:status
+
+# Roll back the latest migration batch
+php spark migrate:rollback
+
+# Run the test suite
+composer test
+```
+
+## Troubleshooting
+
+### Database connection error
+
+- Confirm MySQL is running.
+- Check the database name, credentials, host, and port in `.env`.
+- Ensure the `mysqli` extension is enabled.
+
+### `urls` table not found
+
+Run `php spark migrate`.
+
+### Page not found
+
+Use `http://localhost:8080/url-shortener`, not only the root URL. With Apache or Nginx, point the document root to the project's `public` directory.
+
+### Wrong styles or generated URL
+
+Ensure `.env` uses the same URL and port as the server:
+
+```ini
+app.baseURL = 'http://localhost:8080/'
+```
+
+### Writable-directory error
+
+Ensure the web-server user has write access to `writable`.
+
+## Production notes
+
+Before public deployment:
+
+- Set `CI_ENVIRONMENT = production`.
+- Point the web-server document root to `public/`.
+- Use HTTPS and set `app.baseURL` to the production domain.
+- Keep `.env`, credentials, and application code outside the public document root.
+- Add strict URL validation and allowed-scheme checking.
+- Enforce unique short codes and regenerate a code after a collision.
+- Add rate limiting and abuse protection.
+
+## License
+
+This project is available under the [MIT License](LICENSE).
