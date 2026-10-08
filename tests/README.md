@@ -116,3 +116,39 @@ Be sure to modify the test case (or create your own) to point to your seed and m
 and include any additional steps to be run before tests in the `setUp()` method.
 See [Testing Your Database](https://codeigniter.com/user_guide/testing/database.html)
 for details.
+
+---
+
+<!-- local-learning-guide -->
+
+# Test suite
+
+Path: `tests/` in `url-shortener`. [Project walkthrough](../README.md) · [Parent guide](../README.md)
+
+## Purpose and place in the flow
+
+These folders contain starter unit, session, and database examples plus reusable support classes. phpunit.dist.xml selects bootstrap and suites. Their presence does not prove custom API or form behavior is covered.
+
+## Learn this folder in order
+
+1. Read phpunit.dist.xml before running composer test.
+2. Review the testing connection and use a separate test database.
+3. Run composer test from the project root with development dependencies installed.
+4. Compare existing assertions with custom features and identify a missing integration scenario.
+
+## Files in this folder
+
+| File | What to inspect |
+| --- | --- |
+| [index.html](index.html) | Directory placeholder; this is not the application front controller. |
+
+## Continue into child folders
+
+- [_support/](_support/README.md)
+- [database/](database/README.md)
+- [session/](session/README.md)
+- [unit/](unit/README.md)
+
+## Check your understanding
+
+Explain who uses this folder, which input or configuration reaches it, and what output or state it produces. Change one small value in a local exercise, observe the effect through the caller, and check the relevant error path. Run all Spark/Composer commands from the project root, not from this subfolder. The project walkthrough gives the setup and verification steps for the complete application.

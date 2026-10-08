@@ -328,3 +328,109 @@ Before public deployment:
 ## License
 
 This project is available under the [MIT License](LICENSE).
+
+---
+
+<!-- local-learning-guide -->
+
+# URL shortener learning walkthrough
+
+Understand form submission, short-code storage, redirects, opened tracking, and the browser interface.
+
+[Workspace learning path](../README.md)
+
+## Setup from the beginning
+
+Run these commands from this project's root, where `spark` and `composer.json` live. Each folder is an independent application; installing or migrating one does not configure the others.
+
+1. Install PHP compatible with `composer.json` (`^8.2` here), Composer, and MySQL/MariaDB for the database exercises. Enable `intl`, `mbstring`, and `mysqli`; some helper lessons also need `curl` or `fileinfo`.
+2. Check `php --version`, `php -m`, and `composer --version`, then run:
+
+```powershell
+composer install
+composer check-platform-reqs
+```
+
+3. Keep an existing `.env`. If absent, copy `env` when available or create `.env` in this project root. Most app starters here no longer have an `env` template. Use these example settings with your actual local credentials:
+
+```ini
+CI_ENVIRONMENT = development
+app.baseURL = 'http://localhost:8080/'
+database.default.hostname = localhost
+database.default.database = 'ci4_url_shortener'
+database.default.username = 'YOUR_LOCAL_DB_USER'
+database.default.password = 'YOUR_LOCAL_DB_PASSWORD'
+database.default.DBDriver = MySQLi
+database.default.port = 3306
+```
+
+4. Create an empty database in your MySQL client:
+
+```sql
+CREATE DATABASE ci4_url_shortener CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+```
+
+5. Read the application migrations and project-specific instructions below before running `php spark migrate`. Shield has an additional migration order; the manual welcome-page example does not require a database.
+6. Run `php spark routes` to inspect route methods and handlers, then `php spark serve`. Visit `http://localhost:8080/` or the lesson path below. Stop with Ctrl+C. For a second application use another port and update its base URL.
+
+These settings are examples, not a copy of private local configuration. With Apache or Nginx, use `public/` as the document root.
+
+## How a request travels through this folder
+
+```text
+Browser/API client -> public/index.php -> framework bootstrap
+                   -> Config/Routes.php -> before filter (if attached)
+                   -> controller -> model or query builder -> database
+                   -> view/JSON/redirect -> client
+```
+
+Routes choose the controller method. Filters can stop a request before it reaches that method. Controllers read inputs and coordinate the response. Models define permitted fields and table operations; some examples use `db_connect()->table()` directly. Views render HTML, while ResourceController methods return JSON. Migrations define database structure and run separately from ordinary requests.
+
+## Learn the implemented workflow from start to finish
+
+
+1. Follow `/url-shortener` from `app/Config/Routes.php` into `URLController::urlShortener()`.
+2. Read `app/Views/url-shortener.php` alongside `public/style.css`; distinguish the form, result panel, client validation, and clipboard code.
+3. Submit form field `long_url` with `https://example.com/learning`. The controller shuffles letters/digits, takes six characters, and inserts into `urls`.
+4. Read the migration: destination length is 150 characters, code storage is 10 characters, `is_opened` starts at `0`, and `created_at` defaults to the database time.
+5. Open the generated `/{shortcode}` link. `handelShortURLs()` looks up the destination, changes `is_opened` to `1`, and redirects.
+6. Try an unknown code and inspect the JSON error body. The controller uses `echo` and `exit` for this branch rather than a framework response object.
+7. Inspect the same row in MySQL before and after visiting the link. `is_opened` is a flag, not a visit count.
+8. Rebuild the flow without copying the controller; then add server-side URL validation and a unique index with collision retries.
+
+The controller inserts the key `shortCode`, while the migration and lookup use `shortcode`. MySQL column matching commonly accepts this difference, but use consistent spelling when adapting the code to another database. Codes have no uniqueness constraint and duplicate destinations are not reused. The interface depends on CDN libraries, so validation and notifications require those resources to load.
+
+## Folder map
+
+- [app/](app/README.md): This is the project-specific MVC layer. Start with Config/Routes.php, follow a handler into Controllers, then inspect its database access and output.
+- [public/](public/README.md): index.php is the HTTP front controller. This folder is the intended web document root; files here can be requested directly. CSS, scripts, images, and uploaded files belong here only when they are intended to be public.
+- [tests/](tests/README.md): These folders contain starter unit, session, and database examples plus reusable support classes. phpunit.dist.xml selects bootstrap and suites. Their presence does not prove custom API or form behavior is covered.
+- [vendor/](vendor/README.md): Composer-managed dependencies; installed library documentation stays with each package.
+- [writable/](writable/README.md): The framework stores generated cache, sessions, logs, debug data, and application-managed uploads under writable. These are runtime artifacts, not source lessons; keep this directory outside the public document root.
+
+## Verify your learning
+
+1. Complete a successful request and explain the route, input reader, query, and output without looking at the guide.
+2. Inspect the database before and after a write. Use the returned or stored ID rather than assuming it is always `1`.
+3. Try missing input, unknown IDs/codes, and duplicate input where applicable. For authenticated apps also try absent and invalid credentials.
+4. Compare the HTTP status with the response body. These teaching examples do not always use conventional REST status codes.
+5. Follow one change through every affected layer: field -> migration -> allowed fields -> validation -> form/API -> response.
+
+## Tests and troubleshooting
+
+Run `composer test` from the project root after installing development dependencies. Read `phpunit.dist.xml` and `tests/README.md` first: the checked-in unit, session, and database examples are starter tests, not complete feature coverage for this application's custom workflows. Use a separate test database and check the active `tests` connection before database tests.
+
+| Symptom | What to inspect |
+| --- | --- |
+| PHP extension or version error | `php -m`, the PHP used in your terminal, and `composer check-platform-reqs` |
+| Missing autoloader/framework | Run `composer install`; inspect `app/Config/Paths.php` |
+| Database connection fails | MySQL service, database existence, `.env` host/port/credentials |
+| Table or column missing | Migration status, model table/fields, and project-specific issues above |
+| 404 or wrong handler | `php spark routes`, HTTP method, route spelling/order, `public/` document root |
+| Form fields missing | `getPost()` versus JSON input, field names, and Content-Type |
+| Protected route rejected | Authorization scheme, token/credentials, filter alias, and server forwarding of the header |
+| Session/flashdata missing | Same browser/cookie jar; flashdata is temporary |
+| Styles or short links point elsewhere | `app.baseURL`, chosen server port, and public asset paths |
+| Permission failure | Runtime write access to `writable/`; upload lessons also need `public/uploads/` |
+
+Read `writable/logs` locally for errors and avoid exposing those files through the web server. Before publishing an exercise, implement the validation, authentication, and schema fixes identified above and use a production environment with HTTPS.
